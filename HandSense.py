@@ -28,18 +28,26 @@ class HandSense:
 
     def handLandmarks(self, img, handNo = 0, draw=True):
         self.hlm =[]
+        xList =[]
+        yList =[]
+        boundBox =[]
         if self.result_image.multi_hand_landmarks:
             hand = self.result_image.multi_hand_landmarks[handNo]
             for id, lm in enumerate(hand.landmark):
                 h, w, channel = img.shape
                 cx, cy = int(lm.x * w), int(lm.y * h)
+                xList.append(cx)
+                yList.append(cy)
                 self.hlm.append([id,cx,cy])
                 if draw:
                     cv2.circle(img, (cx, cy), 12, (255, 255, 0), cv2.FILLED)
-        return self.hlm
+            xmin,xmax =min(xList),max(xList)
+            ymin, ymax = min(xList), max(xList)
+            boundBox = xmin,ymin,xmax,ymax
+        return self.hlm,boundBox
 
     def fingerUp(self,img, draw = True):
-        lmks = self.handLandmarks(img, draw= draw)
+        lmks,_ = self.handLandmarks(img, draw= draw)
         self.tipIndex= [4,8,12,16,20]
         self.fingerup = []
         if len(lmks) != 0:
@@ -74,7 +82,7 @@ def main():
     while True:
         success, img = capture.read()
         img = handsense.detectHands(img)
-        lst = handsense.handLandmarks(img)
+        lst,_ = handsense.handLandmarks(img)
         if len(lst)!=0:
             print(lst[4])
         ctime = time.time()
